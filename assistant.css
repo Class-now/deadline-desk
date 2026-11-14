@@ -20,7 +20,9 @@
 
 .assistant-panels {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
+  /* The assistant sits in the side column, so stack the agents panel under the chat
+     and give the chat the full width. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   margin-top: 16px;
 }
