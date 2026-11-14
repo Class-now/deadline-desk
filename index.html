@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Deadline Desk — open prize calls, planned backwards</title>
+  <meta name="description" content="An open agentic website listing prize contests and hackathons you can still enter, with a shortlist and a back-planned schedule. Other agent websites can ask its assistant too.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="assistant.css">
+  <script type="module" src="js/board.js"></script>
+  <script type="module" src="site.js"></script>
+</head>
+<body>
+  <header class="masthead">
+    <p class="kicker">Open agentic website · agent network at <code>deadline_desk.network.json</code></p>
+    <h1>Deadline Desk</h1>
+    <p class="lede">Prize contests and hackathons you can still enter, sorted by the date that matters. Shortlist a few, and the desk plans your work backwards from each deadline.</p>
+  </header>
+
+  <main>
+    <section class="board" aria-labelledby="board-heading">
+      <h2 id="board-heading">Open calls</h2>
+      <form id="filters" class="filters">
+        <label>Category
+          <select id="f-category" name="category">
+            <option value="any">Any</option>
+            <option value="hackathon">Hackathon</option>
+            <option value="writing">Writing</option>
+            <option value="poetry">Poetry</option>
+            <option value="essay-prize">Essay prize</option>
+            <option value="film">Film</option>
+            <option value="design">Design</option>
+            <option value="business-idea">Business idea</option>
+            <option value="data-science">Data science</option>
+          </select>
+        </label>
+        <label>Language
+          <select id="f-language" name="language">
+            <option value="any">Any</option>
+            <option value="English">English</option>
+            <option value="Japanese">Japanese</option>
+          </select>
+        </label>
+        <label>Generative AI
+          <select id="f-aiPolicy" name="aiPolicy">
+            <option value="any">Any rule</option>
+            <option value="allowed">Allowed</option>
+            <option value="not-forbidden">Not forbidden</option>
+          </select>
+        </label>
+        <label>Top prize at least (USD)
+          <input id="f-minPrizeUsd" name="minPrizeUsd" type="number" min="0" step="100" placeholder="0">
+        </label>
+        <label>Deadline from
+          <input id="f-deadlineFrom" name="deadlineFrom" type="date">
+        </label>
+        <label>Deadline to
+          <input id="f-deadlineTo" name="deadlineTo" type="date">
+        </label>
+        <label class="wide">Keyword
+          <input id="f-keyword" name="keyword" type="search" maxlength="60" placeholder="e.g. students, Devpost, senryu">
+        </label>
+        <div class="buttons">
+          <button type="submit">Filter</button>
+          <button type="reset" class="secondary">Clear</button>
+        </div>
+        <p id="filters-message" class="message" role="alert"></p>
+      </form>
+      <p id="calls-count" class="count" role="status"></p>
+      <ul id="calls-list" class="calls"></ul>
+    </section>
+
+    <aside class="side">
+      <section class="shortlist" aria-labelledby="shortlist-heading">
+        <h2 id="shortlist-heading">Your shortlist</h2>
+        <p id="shortlist-empty" class="muted">Nothing yet. Add calls from the list, or ask the assistant.</p>
+        <ul id="shortlist-list"></ul>
+        <h3>Back-planned schedule</h3>
+        <p class="muted">Start, draft and submit dates, two days before each deadline, using typical preparation time per category.</p>
+        <ol id="plan-list" class="plan"></ol>
+        <button id="export-ics" type="button" class="secondary">Download submit dates (.ics)</button>
+      </section>
+
+      <section id="assistant" class="assistant" aria-labelledby="assistant-heading">
+        <h2 id="assistant-heading">Ask Deadline Desk</h2>
+        <p>Ask in plain words: what closes soon, what fits your language and the rules on AI, and when you should start.</p>
+        <p class="assistant-note">Your messages and this page's data go to the LLM provider you choose in the settings below. You confirm anything that cannot be undone before it happens.</p>
+        <p id="assistant-status" role="status">Connecting the assistant… If this message stays, the assistant could not load. You can still use the page directly.</p>
+        <div id="agent-app">
+          <div data-ns-slot="header"></div>
+          <div class="assistant-panels">
+            <div data-ns-slot="chat"></div>
+            <div data-ns-slot="agents"></div>
+          </div>
+          <div data-ns-slot="settings"></div>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <footer>
+    <p>Calls are a hand-checked snapshot; rules change, so always read the organizer's page before entering. Deadlines are shown in Japan time (UTC+9).</p>
+    <p>For other agent websites: manifest <a href="agent-manifest.json">agent-manifest.json</a>, network <a href="deadline_desk.network.json">deadline_desk.network.json</a>, discovery <a href=".well-known/nsdeploy.json">.well-known/nsdeploy.json</a>. Open source under the MIT license.</p>
+  </footer>
+</body>
+</html>

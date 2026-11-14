@@ -1,0 +1,10 @@
+{
+  "networks": [
+    {
+      "name": "deadline_desk"
+    }
+  ],
+  "actions": {
+    "version": 1
+  }
+}

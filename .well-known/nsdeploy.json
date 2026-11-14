@@ -1,0 +1,18 @@
+{
+  "protocol": "nsdeploy-link/v1",
+  "exports": [
+    {
+      "network": "deadline_desk",
+      "front_man": "deadline_desk_assistant",
+      "aliases": [
+        "deadline_desk",
+        "deadline_desk_assistant"
+      ],
+      "url": "deadline_desk"
+    }
+  ],
+  "imports": [],
+  "link_updates": {
+    "mode": "browser-local"
+  }
+}

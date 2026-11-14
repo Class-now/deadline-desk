@@ -1,0 +1,81 @@
+{
+  "brand": "Deadline Desk Assistant",
+  "networks": [
+    {
+      "name": "deadline_desk",
+      "front_man": "deadline_desk_assistant",
+      "hocon": "./deadline_desk.network.json",
+      "description": "Find open prize contests and hackathons you can still enter, shortlist them and get a back-planned schedule.",
+      "tags": [
+        "agentified-website"
+      ],
+      "sample_queries": [
+        "Which hackathons that allow generative AI close in the next four weeks?",
+        "Show me English writing or essay prizes with a top prize of at least $1,000.",
+        "Add the Open Agentic Web Challenge to my shortlist and plan when I should start.",
+        "I have three calls on my shortlist. Do any of their submit dates clash?",
+        "Can you submit my entry to the contest for me?"
+      ]
+    }
+  ],
+  "llm_router": {
+    "base_url": "https://api.otari.ai/api/v1",
+    "mock": false,
+    "byok_router": "https://api.otari.ai/api/v1"
+  },
+  "allowed_peers": [],
+  "peer_policy": {
+    "mode": "closed",
+    "deny_origins": [],
+    "note": "Local agents and page-local actions only."
+  },
+  "agent_mcp": {
+    "protocol": "nsdeploy-agent-mcp/v1",
+    "network": "deadline_desk",
+    "front_man": "deadline_desk_assistant",
+    "available": false,
+    "reason": "This is a static bundle; a public MCP facade requires an application host."
+  },
+  "theme": {
+    "primary": "#7a2e1d"
+  },
+  "linking": {
+    "protocol": "nsdeploy-link/v1",
+    "exports": [
+      {
+        "network": "deadline_desk",
+        "front_man": "deadline_desk_assistant",
+        "aliases": [
+          "deadline_desk",
+          "deadline_desk_assistant"
+        ],
+        "url": "deadline_desk"
+      }
+    ],
+    "imports": [],
+    "link_updates": {
+      "mode": "browser-local"
+    }
+  },
+  "deployment": {
+    "mode": "static",
+    "self_contained_runtime": true,
+    "browser_mock": false,
+    "direct_byok": true,
+    "direct_mcp_requires_cors": true,
+    "public_mcp_facade": false
+  },
+  "actions": {
+    "version": 1,
+    "module": "./site-actions.js",
+    "bridge": "./bridge/action-bridge.html",
+    "agentTools": [
+      "get_board_state",
+      "find_calls",
+      "show_calls",
+      "add_to_shortlist",
+      "remove_from_shortlist",
+      "plan_shortlist"
+    ]
+  }
+}
