@@ -1,0 +1,12 @@
+{
+  "name": "deadline-desk",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An open agentic website for prize contests and hackathons you can still enter.",
+  "license": "MIT",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\""
+  }
+}

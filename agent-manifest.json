@@ -23,11 +23,11 @@
     "mock": false,
     "byok_router": "https://api.otari.ai/api/v1"
   },
-  "allowed_peers": [],
+  "allowed_peers": ["https://deadline-desk-agent.vercel.app"],
   "peer_policy": {
     "mode": "closed",
     "deny_origins": [],
-    "note": "Local agents and page-local actions only."
+    "note": "Local agents, page-local actions and this site's own read-only MCP endpoint (/api/mcp) only. No partner sites are called."
   },
   "agent_mcp": {
     "protocol": "nsdeploy-agent-mcp/v1",

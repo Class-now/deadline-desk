@@ -9,9 +9,10 @@ The page has an embedded assistant built with the
 Worldwide Agentic Web MVP spec. It runs in your browser on your own LLM key, answers only
 from the board's data, and acts through the same functions as the page's buttons.
 
-- Live site: https://class-now.github.io/deadline-desk/
-- Network URL: https://class-now.github.io/deadline-desk/deadline_desk
+- Live site: https://deadline-desk-agent.vercel.app/
+- Network URL (what another agent site puts in its `tools`): https://deadline-desk-agent.vercel.app/deadline_desk
   (manifest: `agent-manifest.json`, network: `deadline_desk.network.json`)
+- MCP endpoint (read-only, no key, CORS open): https://deadline-desk-agent.vercel.app/api/mcp
 
 ## What the assistant can do
 
@@ -29,9 +30,52 @@ entries, contacting organizers, or confirming eligibility beyond what the board 
 then gives the call's official link. Nothing here is irreversible, so no action needs a
 confirmation dialog.
 
-Other agent websites can call this network. They get no `website_*` tools, so their
-assistant answers in general terms and points to this page. This site calls no partner
-sites.
+## Two agents, and why
+
+| Agent | Runs when | Grounded by |
+| --- | --- | --- |
+| `deadline_desk_assistant` (front) | a visitor chats on this page | the six `website_*` actions above |
+| `board_lookup` | another agent site runs this network | this site's MCP endpoint, `/api/mcp` |
+
+The spec runs a called site's network in the *caller's* browser, where the called site's
+page, and so its `website_*` actions, do not exist. A called network normally can only
+describe itself. Deadline Desk's second agent closes that gap: with no page tools, the
+front agent hands the request to `board_lookup`, which reads the same board through
+`/api/mcp`. That endpoint is on this site's own origin, so the caller's visitor sees one
+consent card, for Deadline Desk, and then gets real deadlines, days left, prizes and
+official links. The caller's key goes only to the caller's router: this site receives the
+MCP tool arguments and nothing else.
+
+## Call Deadline Desk from your agent site
+
+1. Put `"https://deadline-desk-agent.vercel.app/deadline_desk"` in the calling agent's `tools`.
+2. Put `"https://deadline-desk-agent.vercel.app"` in your manifest's `allowed_peers`.
+3. Label it in your `.hocon`: `"link_labels": {"https://deadline-desk-agent.vercel.app/deadline_desk": "Deadline Desk"}`.
+4. Tell your agent when to ask, for example: "For contests, hackathons or prize deadlines,
+   ask deadline_desk which open calls match."
+
+Check it from your side with the spec repository's script:
+
+```shell
+node skills/agentify-website/scripts/check_partner.mjs https://deadline-desk-agent.vercel.app/deadline_desk --origin <your origin>
+```
+
+## Use the board from any MCP client
+
+`POST https://deadline-desk-agent.vercel.app/api/mcp` speaks JSON-RPC 2.0 (MCP, stateless,
+plain JSON answers). Two read-only tools, backed by the same `js/board.js` the page runs:
+
+- `find_open_calls`: filters `category`, `language`, `aiPolicy`, `minPrizeUsd`,
+  `withinDays`, `deadlineFrom`, `deadlineTo`, `keyword`, `limit`. Returns today's date in
+  Japan time and the open calls sorted by deadline.
+- `plan_deadlines`: `ids` (1 to 12) and `bufferDays`. Returns start, draft and submit dates
+  and clashes. Nothing is stored.
+
+```shell
+curl -s https://deadline-desk-agent.vercel.app/api/mcp -H "Content-Type: application/json"   -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"find_open_calls","arguments":{"category":"hackathon","withinDays":28}}}'
+```
+
+This site calls no partner sites.
 
 ## Privacy
 
@@ -52,7 +96,7 @@ Then open http://127.0.0.1:8080/. Tests (no LLM is called):
 
 ```shell
 node skills/agentify-website/scripts/build_network.mjs <this folder>/deadline_desk.hocon --manifest <this folder>/agent-manifest.json --check
-node --test "<this folder>/tests/*.test.mjs"
+node --test <this folder>/tests/agentified.test.mjs <this folder>/tests/mcp.test.mjs
 ```
 
 ## Files
@@ -61,12 +105,18 @@ node --test "<this folder>/tests/*.test.mjs"
 - `site-actions.js` (actions), `site.js` and `assistant.css` (the assistant on the page)
 - `deadline_desk.hocon` (network source) → `deadline_desk.network.json` (generated)
 - `agent-manifest.json`, `links.json`, `agent-mcp.json`, `.well-known/` (discovery), `bridge/` (for calling sites)
-- `runtime/` (the browser runtime from the skill, unchanged), `tests/`
+- `api/mcp.js` (the MCP endpoint, a Vercel function), `vercel.json` (CORS on the public files, the sandbox worker's CSP)
+- `runtime/` (the browser runtime from the skill, unchanged), `tests/` (17 tests: the page and network, and the MCP endpoint)
 
 ## Limits
 
-Static hosting only, with the skill's patched copy of the nsdeploy runtime. Write actions
-run without a dialog. The board is a hand-checked snapshot; always confirm rules and
-deadlines on the organizer's page. The LLM provider must allow CORS. The network file,
-including instructions, is public. GitHub Pages cannot set the Content-Security-Policy
-header the skill suggests for `runtime/sandbox-worker.js`.
+Static files plus one stateless function, with the skill's patched copy of the nsdeploy
+runtime. Write actions run without a dialog. The board is a hand-checked snapshot; always
+confirm rules and deadlines on the organizer's page. The LLM provider must allow CORS. The
+network file, including instructions, is public. Opened from another origin, such as a
+local copy, the page's assistant still works, but `/api/mcp` is then a third-party
+service and the runtime asks before contacting it.
+
+## License
+
+MIT (see `LICENSE`). The files under `runtime/` keep their own license, Apache 2.0 (`runtime/LICENSE.txt`).
