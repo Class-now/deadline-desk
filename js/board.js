@@ -187,13 +187,28 @@ export class Board {
    * :return: {ok, today, steps (sorted by start date), clashes, closed}.
    */
   planShortlist(bufferDays = 2) {
+    return Board.planCalls(this.shortlist, bufferDays);
+  }
+
+  /**
+   * Work back from the deadlines of the named calls, whether or not they are on a
+   * shortlist. Changes nothing, so other agent sites may ask it too.
+   * :param ids: call ids (1-12).
+   * :param bufferDays: days between "submit by" and the real deadline (0-7).
+   * :return: {ok, today, steps (sorted by submit date), clashes, closed} or a refusal.
+   */
+  static planCalls(ids, bufferDays = 2) {
     const buffer = Number.isInteger(bufferDays) ? bufferDays : 2;
     if (buffer < 0 || buffer > 7) return { ok: false, reason: "Buffer must be 0 to 7 days.", field: "bufferDays" };
+    if (!Array.isArray(ids)) return { ok: false, reason: "Give the call ids as a list.", field: "ids" };
+    if (ids.length > 12) return { ok: false, reason: "Plan at most 12 calls at a time.", field: "ids" };
+    const unknown = ids.find(id => !CALLS.some(c => c.id === id));
+    if (unknown !== undefined) return { ok: false, reason: `No call with id "${unknown}".`, field: "ids" };
     const now = Board.now();
     const today = JstDate.parseDay(JstDate.iso(now));
     const steps = [];
     const closed = [];
-    for (const id of this.shortlist) {
+    for (const id of [...new Set(ids)]) {
       const call = CALLS.find(c => c.id === id);
       const s = Board.summary(call);
       if (!s.open) {
@@ -237,8 +252,8 @@ export class Board {
     return lines.join("\r\n");
   }
 
-  /** :return: the page state as plain JSON. */
-  getState() {
+  /** :return: what every visitor sees: today, the snapshot date and the categories. */
+  static publicState() {
     const now = Board.now();
     return {
       today: JstDate.iso(now),
@@ -246,7 +261,15 @@ export class Board {
       timeZone: "Asia/Tokyo (JST, UTC+9)",
       snapshotDate: SNAPSHOT_DATE,
       totalCalls: CALLS.length,
+      openCalls: CALLS.filter(c => Date.parse(c.deadline) > now).length,
       categories: CATEGORIES,
+    };
+  }
+
+  /** :return: the page state as plain JSON. */
+  getState() {
+    return {
+      ...Board.publicState(),
       filters: { ...this.filters },
       shownCount: this.shownIds.length,
       shortlist: this.shortlist.map(id => Board.summary(CALLS.find(c => c.id === id))),

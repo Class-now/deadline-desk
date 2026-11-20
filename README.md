@@ -24,27 +24,33 @@ from the board's data, and acts through the same functions as the page's buttons
 | `website_add_to_shortlist` | write | `Board.addToShortlist()` — refuses closed calls, duplicates, a full list |
 | `website_remove_from_shortlist` | write | `Board.removeFromShortlist()` |
 | `website_plan_shortlist` | read | `Board.planShortlist()` — start/draft/submit dates and clashes |
+| `website_plan_calls` | read | `Board.planCalls()` — the same plan for calls named by id, no shortlist needed |
 
 It declines what the site cannot do: registering or submitting an entry, writing or judging
 entries, contacting organizers, or confirming eligibility beyond what the board lists. It
 then gives the call's official link. Nothing here is irreversible, so no action needs a
 confirmation dialog.
 
-## Two agents, and why
-
-| Agent | Runs when | Grounded by |
-| --- | --- | --- |
-| `deadline_desk_assistant` (front) | a visitor chats on this page | the six `website_*` actions above |
-| `board_lookup` | another agent site runs this network | this site's MCP endpoint, `/api/mcp` |
+## What another agent site gets
 
 The spec runs a called site's network in the *caller's* browser, where the called site's
-page, and so its `website_*` actions, do not exist. A called network normally can only
-describe itself. Deadline Desk's second agent closes that gap: with no page tools, the
-front agent hands the request to `board_lookup`, which reads the same board through
-`/api/mcp`. That endpoint is on this site's own origin, so the caller's visitor sees one
-consent card, for Deadline Desk, and then gets real deadlines, days left, prizes and
-official links. The caller's key goes only to the caller's router: this site receives the
-MCP tool arguments and nothing else.
+page does not exist. Deadline Desk still answers with real data, in two ways.
+
+| Path | Used when | What runs |
+| --- | --- | --- |
+| Shared reads (`bridge/bridge-actions.js`) | the caller's runtime loads this site's action bridge | `get_board_state`, `find_calls` and `plan_calls`, in a hidden frame on this site's origin, with the page's own `Board` code |
+| `board_lookup`, the second agent | the front agent has no `website_*` tools at all | this site's MCP endpoint, `/api/mcp`, with the same `Board` code on the server |
+
+The three shared reads have the names and input of the page's own actions, so one set of
+instructions fits both places. They list `"*"` as caller, because they return only what
+the public page shows everyone: open calls, deadlines, prizes and official links. The
+shortlist and the filters on a visitor's page belong to that visitor, so the bridge shares
+neither, and no write is shared: a caller's visitor is told that shortlists are kept on
+this site's page.
+
+The caller's visitor sees one consent card, for Deadline Desk, before anything is fetched.
+The caller's key goes only to the caller's router: this site receives the static file
+requests, or the MCP tool arguments, and nothing else.
 
 ## Call Deadline Desk from your agent site
 
@@ -104,9 +110,9 @@ node --test <this folder>/tests/agentified.test.mjs <this folder>/tests/mcp.test
 - `index.html`, `styles.css`, `js/board.js` (page logic), `js/calls-data.js` (the board snapshot)
 - `site-actions.js` (actions), `site.js` and `assistant.css` (the assistant on the page)
 - `deadline_desk.hocon` (network source) → `deadline_desk.network.json` (generated)
-- `agent-manifest.json`, `links.json`, `agent-mcp.json`, `.well-known/` (discovery), `bridge/` (for calling sites)
+- `agent-manifest.json`, `links.json`, `agent-mcp.json`, `.well-known/` (discovery), `bridge/` (for calling sites: the bridge page the build writes, and `bridge-actions.js`, the three reads shared with them)
 - `api/mcp.js` (the MCP endpoint, a Vercel function), `vercel.json` (CORS on the public files, the sandbox worker's CSP)
-- `runtime/` (the browser runtime from the skill, unchanged), `tests/` (17 tests: the page and network, and the MCP endpoint)
+- `runtime/` (the browser runtime from the skill, unchanged), `tests/` (19 tests: the page and network, the shared reads, and the MCP endpoint)
 
 ## Limits
 
