@@ -66,6 +66,16 @@ Check it from your side with the spec repository's script:
 node skills/agentify-website/scripts/check_partner.mjs https://deadline-desk-agent.vercel.app/deadline_desk --origin <your origin>
 ```
 
+## A site that calls it: Spare Hours
+
+[Spare Hours](https://spare-hours-agent.vercel.app/)
+([code](https://github.com/Class-now/spare-hours)) is a second agentic website on another
+origin. It holds a visitor's free hours per weekday and knows nothing about contests. Its
+assistant asks Deadline Desk which calls are open, after the consent card, and then tests
+each one against the visitor's own week. Try there: "Ask Deadline Desk which hackathons
+that allow generative AI close in the next eight weeks, and tell me which ones fit my
+week."
+
 ## Use the board from any MCP client
 
 `POST https://deadline-desk-agent.vercel.app/api/mcp` speaks JSON-RPC 2.0 (MCP, stateless,
